@@ -1,18 +1,24 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 
+	"github.com/Brackistar/guild-hall-backend/constants"
 	"github.com/Brackistar/guild-hall-backend/models"
 	"github.com/gin-gonic/gin"
+	"github.com/spf13/viper"
 )
 
 // Inicio del servidor
 func main() {
-	var serverConfig models.ServerConfig
-	getConfig(&serverConfig)
+	// Iniciar libreria de configuración Viper
+	configViper()
+
+	serverConfig := new(models.ServerConfig)
+
+	setConfiguration(serverConfig)
 
 	router := gin.Default()
 
@@ -20,19 +26,22 @@ func main() {
 	router.Run(url)
 }
 
-// Leer configuración desde archivo de config
-func getConfig(config *models.ServerConfig) {
-	file, err := os.Open("./Config/serverConfig.json")
+// Configura lectura de archivo de configuración con libreria Viper
+func configViper() {
+	viper.SetConfigName(constants.ConfigFileName)
+	viper.SetConfigType(constants.Json)
+	viper.AddConfigPath(constants.ConfigFilePath)
+
+	err := viper.ReadInConfig()
 
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
+		os.Exit(1)
 	}
+}
 
-	defer file.Close()
-
-	err = json.NewDecoder(file).Decode(&config)
-
-	if err != nil {
-		panic(err)
-	}
+func setConfiguration(config *models.ServerConfig) {
+	config.HostName = viper.GetString(constants.ServerHostConstant)
+	config.Port = viper.GetInt(constants.ServerPortConstant)
+	config.HasSSL = viper.GetBool(constants.ServerHasSslConstant)
 }
