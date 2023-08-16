@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/Brackistar/guild-hall-backend/constants"
+	"github.com/Brackistar/guild-hall-backend/controllers"
 	"github.com/Brackistar/guild-hall-backend/models"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
@@ -22,8 +23,14 @@ func main() {
 
 	router := gin.Default()
 
+	configureEndpoints(router)
+
 	url := fmt.Sprintf("%s:%d", serverConfig.HostName, serverConfig.Port)
 	router.Run(url)
+}
+
+func configureEndpoints(router *gin.Engine) {
+	router.GET(constants.StatusEndpoint, controllers.TestConnection)
 }
 
 // Configura lectura de archivo de configuración con libreria Viper
