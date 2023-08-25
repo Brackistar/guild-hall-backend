@@ -2,18 +2,28 @@ package main
 
 import (
 	"fmt"
-	"log"
+
 	"os"
 
 	"github.com/Brackistar/guild-hall-backend/constants"
 	"github.com/Brackistar/guild-hall-backend/controllers"
+	"github.com/Brackistar/guild-hall-backend/helpers"
+	"github.com/Brackistar/guild-hall-backend/interfaces"
 	"github.com/Brackistar/guild-hall-backend/models"
+	"github.com/Brackistar/guild-hall-backend/services"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
+var loggerHelper interfaces.ILogHelper
+var logger *logrus.Logger
+
 // Inicio del servidor
 func main() {
+	loggerHelper = helpers.NewLogrusHelper()
+	logger = loggerHelper.ConfigureLogger()
+
 	// Iniciar libreria de configuración Viper
 	configViper()
 
@@ -30,7 +40,20 @@ func main() {
 }
 
 func configureEndpoints(router *gin.Engine) {
-	router.GET(constants.StatusEndpoint, controllers.TestConnection)
+	configureHomeController(router)
+	configureAdventurerController(router)
+}
+
+func configureHomeController(router *gin.Engine) {
+	homeController := controllers.NewHomeController(logger)
+	router.GET(constants.StatusEndpoint, homeController.TestConnection)
+}
+
+func configureAdventurerController(router *gin.Engine) {
+	service := services.NewMockAdventurerService()
+	adventurerController := controllers.NewAdventurerController(*service, logger)
+
+	router.GET(constants.GetAdventurerEndpoint, adventurerController.GetAdventurer)
 }
 
 // Configura lectura de archivo de configuración con libreria Viper
@@ -42,7 +65,7 @@ func configViper() {
 	err := viper.ReadInConfig()
 
 	if err != nil {
-		log.Fatal(err)
+		logger.Error(err)
 		os.Exit(1)
 	}
 }
