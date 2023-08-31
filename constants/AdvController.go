@@ -1,5 +1,6 @@
 package constants
 
 const (
-	GetAdventurerEndpoint = "/Adventurer"
+	AdventurerIdParamName = "Id"
+	GetAdventurerEndpoint = "/adventurer"
 )

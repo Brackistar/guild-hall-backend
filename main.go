@@ -7,6 +7,7 @@ import (
 
 	"github.com/Brackistar/guild-hall-backend/constants"
 	"github.com/Brackistar/guild-hall-backend/controllers"
+	"github.com/Brackistar/guild-hall-backend/enums"
 	"github.com/Brackistar/guild-hall-backend/helpers"
 	"github.com/Brackistar/guild-hall-backend/interfaces"
 	"github.com/Brackistar/guild-hall-backend/models"
@@ -18,11 +19,13 @@ import (
 
 var loggerHelper interfaces.ILogHelper
 var logger *logrus.Logger
+var errorHandler interfaces.IErrorHandlerService
 
 // Inicio del servidor
 func main() {
 	loggerHelper = helpers.NewLogrusHelper()
 	logger = loggerHelper.ConfigureLogger()
+	errorHandler = services.NewErrorHandlerService(logger)
 
 	// Iniciar libreria de configuración Viper
 	configViper()
@@ -51,15 +54,68 @@ func configureHomeController(router *gin.Engine) {
 
 func configureAdventurerController(router *gin.Engine) {
 	service := services.NewMockAdventurerService()
-	adventurerController := controllers.NewAdventurerController(*service, logger)
+	adventurerController := controllers.NewAdventurerController(service, logger)
 
-	router.GET(constants.GetAdventurerEndpoint, adventurerController.GetAdventurer)
+	path := constants.GetAdventurerEndpoint
+
+	// Añade endpoint para retornar un único aventurero por Id
+	configureEndpoint(
+		router,
+		enums.Verb_Get,
+		path+"/:"+constants.AdventurerIdParamName,
+		errorHandler.HandleError(adventurerController.GetAdventurer))
+
+	// Añade endpoint para eliminar un aventurero
+	configureEndpoint(
+		router,
+		enums.Verb_Delete,
+		path+"/:"+constants.AdventurerIdParamName,
+		errorHandler.HandleError(adventurerController.DeleteAdventurer))
+
+	// Añade endpoint para crear un nuevo aventurero
+	configureEndpoint(
+		router,
+		enums.Verb_Post,
+		path,
+		errorHandler.HandleError(adventurerController.CreateAdventurer))
+
+	configureEndpoint(
+		router,
+		enums.Verb_Post,
+		path+"/",
+		errorHandler.HandleError(adventurerController.CreateAdventurer))
+
+	// Añade endpoint para actualizar un aventurero
+	configureEndpoint(
+		router,
+		enums.Verb_Update,
+		path,
+		errorHandler.HandleError(adventurerController.UpdateAdventurer))
+
+	configureEndpoint(
+		router,
+		enums.Verb_Update,
+		path+"/",
+		errorHandler.HandleError(adventurerController.UpdateAdventurer))
+}
+
+func configureEndpoint(router *gin.Engine, verb enums.Verb, path string, handler gin.HandlerFunc) {
+	switch verb {
+	case enums.Verb_Get:
+		router.GET(path, handler)
+	case enums.Verb_Post:
+		router.POST(path, handler)
+	case enums.Verb_Update:
+		router.PUT(path, handler)
+	case enums.Verb_Delete:
+		router.DELETE(path, handler)
+	}
 }
 
 // Configura lectura de archivo de configuración con libreria Viper
 func configViper() {
 	viper.SetConfigName(constants.ConfigFileName)
-	viper.SetConfigType(constants.Json)
+	viper.SetConfigType(enums.Json)
 	viper.AddConfigPath(constants.ConfigFilePath)
 
 	err := viper.ReadInConfig()

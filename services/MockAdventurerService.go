@@ -14,9 +14,9 @@ func NewMockAdventurerService() *MockAdventurerService {
 	}
 }
 
-func (s MockAdventurerService) GetAdventurer(id *uint64) (models.Adventurer, error) {
+func (s *MockAdventurerService) GetAdventurer(id *uint64) (models.Adventurer, error) {
 	result := models.Adventurer{
-		Id:   1,
+		Id:   *id,
 		Name: "Test adventurer",
 		Rank: models.AdvRank{
 			Id:          1,
@@ -33,15 +33,15 @@ func (s MockAdventurerService) GetAdventurer(id *uint64) (models.Adventurer, err
 	return result, nil
 }
 
-func (s MockAdventurerService) CreateAdventurer(adventurer *models.Adventurer) (uint64, error) {
+func (s *MockAdventurerService) CreateAdventurer(adventurer *models.Adventurer) (uint64, error) {
 	s.totalAdventurerCounter++
 	return s.totalAdventurerCounter, nil
 }
 
-func (s MockAdventurerService) DeleteAdventurer(id *uint64) error {
+func (s *MockAdventurerService) DeleteAdventurer(id *uint64) error {
 	return nil
 }
 
-func (s MockAdventurerService) UpdateAdventurer(adventurer *models.Adventurer) (models.Adventurer, error) {
+func (s *MockAdventurerService) UpdateAdventurer(adventurer *models.Adventurer) (models.Adventurer, error) {
 	return *adventurer, nil
 }
