@@ -79,12 +79,6 @@ func configureAdventurerController(router *gin.Engine) {
 		path,
 		errorHandler.HandleError(adventurerController.CreateAdventurer))
 
-	configureEndpoint(
-		router,
-		enums.Verb_Post,
-		path+"/",
-		errorHandler.HandleError(adventurerController.CreateAdventurer))
-
 	// Añade endpoint para actualizar un aventurero
 	configureEndpoint(
 		router,
@@ -92,11 +86,12 @@ func configureAdventurerController(router *gin.Engine) {
 		path,
 		errorHandler.HandleError(adventurerController.UpdateAdventurer))
 
+	// Añadir endpoint para obtener una lista de aventureros
 	configureEndpoint(
 		router,
-		enums.Verb_Update,
-		path+"/",
-		errorHandler.HandleError(adventurerController.UpdateAdventurer))
+		enums.Verb_Get,
+		path,
+		errorHandler.HandleError(adventurerController.GetAdventurers))
 }
 
 func configureEndpoint(router *gin.Engine, verb enums.Verb, path string, handler gin.HandlerFunc) {

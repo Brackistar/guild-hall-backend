@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -38,6 +39,35 @@ func (controller *AdventurerController) GetAdventurer(c *gin.Context) (string, e
 	}
 
 	c.JSON(http.StatusOK, adventurer)
+
+	return "", nil
+}
+
+func (controller *AdventurerController) GetAdventurers(c *gin.Context) (string, error) {
+	var request models.GetAdventurersRequest
+
+	if err := c.BindJSON(&request); err != nil {
+		return badRequestResponse(err)
+	}
+
+	if len(request.IdList) == 0 {
+		return badRequestResponse(errors.New("EMPTY IDS LIST"))
+	}
+
+	adventurerList := []models.Adventurer{}
+
+	for _, id := range request.IdList {
+		adventurer, err := controller.adventurerService.GetAdventurer(&id)
+
+		if err != nil {
+			controller.logger.Error(err)
+			continue
+		}
+
+		adventurerList = append(adventurerList, adventurer)
+	}
+
+	c.JSON(http.StatusOK, adventurerList)
 
 	return "", nil
 }
